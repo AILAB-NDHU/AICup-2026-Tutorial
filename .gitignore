@@ -1,0 +1,14 @@
+dataset/*train.csv
+dataset/*test.csv
+rank-features/
+rank-trained-models/
+player-features/
+player-trained-models/
+*.json
+/*.csv
+
+__pycache__/
+*.pyc
+
+.ipynb_checkpoints/
+.vscode/
