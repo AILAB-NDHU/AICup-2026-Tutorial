@@ -1,12 +1,11 @@
-dataset/*train.csv
-dataset/*test.csv
+dataset/*
 rank-features/
 rank-trained-models/
 player-features/
 player-trained-models/
 *.json
 /*.csv
-
+*.pkl
 __pycache__/
 *.pyc
 
