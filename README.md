@@ -207,6 +207,7 @@ Submit these files according to the competition guidelines.
 
 ### Rank Prediction: 
 Each row $i$ in the test set is scored based on the predicted rank:
+
 $$
 score_i = 
 \begin{cases}
@@ -217,18 +218,22 @@ e^{-1}, & \text{within} \pm 1 \text{ rank (excluding exact match)} \\
 $$
 
 The final score is the average over all test samples:
+
 $$
 \text{Final Score} = \frac{1}{N} \sum_{i=1}^{N} score_i
 $$
 
 ### Player Identification: 
 Each row $i$ in the test set is scored based on whether the correct player ID is within the top-5 predictions:
+
 $$
 score_i(r) = e^{- (r - 1)}, \quad r \in \{1,2,3,4,5\}
 $$
+
 where $r$ is the placement of the correct player ID in the top-5 list. If the correct ID is not in the top-5, the score is 0.
 
 The final score is the average over all test samples:
+
 $$
 \text{Final Score} = \frac{1}{N} \sum_{i=1}^{N} score_i(r)
 $$
