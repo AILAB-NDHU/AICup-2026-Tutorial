@@ -20,9 +20,9 @@ class GoRankResNet(nn.Module):
     """
     A ResNet-based model for ranking Go positions.
     Input: (B, 500, 19, 19)
-    Output: (B, 20) - scores for 20 classes
+    Output: (B, 10) - scores for the 10 rank classes
     """
-    def __init__(self, in_channels=500, num_channels=256, num_blocks=20, num_classes=20):
+    def __init__(self, in_channels=500, num_channels=256, num_blocks=20, num_classes=10):
         super().__init__()
         self.conv_in = nn.Conv2d(in_channels, num_channels, 3, padding=1)
         self.bn_in = nn.BatchNorm2d(num_channels)

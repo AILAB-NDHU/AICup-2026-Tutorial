@@ -1,255 +1,258 @@
-# AICup 2026 - Go Game AI Tutorial
+# AICup 2026 - 圍棋 AI Tutorial
 
-## Introduction
+> [English](README.en.md) | **繁體中文**
 
-This repository contains tutorial materials for the AICup 2026 Competition, which focuses on building AI models for Go game analysis. The competition consists of two main challenges:
+## 簡介
 
-### 1. Rank Prediction
-Predict the skill level (rank) of Go players based on their game records. The model classifies players into 10 different ranks ranging from **12 kyu (12k)** to **6 dan (6d)**.
+本 repository 提供 AICup 2026 競賽的 tutorial 教材，主題是以 AI 分析圍棋棋譜。競賽分為兩個子題：
 
-### 2. Player Identification
-Identify the player who played target games based on their game records. This task involves learning unique playing styles and patterns through metric learning techniques.
+### 1. 棋力預測（Rank Prediction）
 
-Both tutorials demonstrate end-to-end deep learning pipelines using PyTorch, including:
-- Feature extraction from SGF contents
-- Model architecture design using ResNet
-- Training and validation procedures
-- Inference on test data
-- Submission file generation
+依據玩家的棋譜預測其棋力等級，共 10 個等級，範圍從 **12 級（12k）** 到 **6 段（6d）**。
 
-**Note:** These tutorials are provided for reference purposes only. Participants are encouraged to modify and improve the code, experiment with different architectures, and use any libraries or frameworks they prefer.
+### 2. 玩家辨識（Player Identification）
+
+依據棋譜找出下這些棋的是誰。這個任務要透過 metric learning 學出每位玩家獨特的下棋風格。
+
+兩份 tutorial 都示範了完整的 PyTorch 深度學習流程：
+
+- 從 SGF 棋譜抽取特徵
+- 以 ResNet 設計模型架構
+- 訓練與驗證
+- 對測試資料推論
+- 產生提交檔
+
+**注意：** 這些 tutorial 僅供參考。歡迎自行修改與改進程式碼、嘗試不同架構，也可以使用任何你偏好的函式庫或框架。
 
 ---
 
-## File Structure
+## 檔案結構
 
-Files and directories in this repository are organized as follows:
-
-Additional files will be generated during feature extraction and model training.
-
-Make sure to place your dataset in the `dataset/` directory as shown below.
+請把官方發佈的資料集放到 repository 根目錄，`training/` 與 `tests/` 兩個目錄保持發佈時的結構：
 
 ```
 AICup-2026-Tutorial/
 │
-├── dataset/                                    # Dataset directory
-│   ├── rank_prediction_train.csv               # Training data for rank prediction
-│   ├── rank_prediction_test.csv                # Test data for rank prediction
-│   ├── player_identification_train.csv         # Training data for player identification
-│   ├── player_identification_candidates.csv    # Candidate pool for player identification
-│   └── player_identification_test.csv          # Test data for player identification
+├── training/                                       # 訓練集（官方發佈）
+│   └── train_D.csv ... train_6D.csv                # 每個等級一個 CSV（10 檔，兩個子題共用）
 │
-├── network.py                                  # Neural network architectures
-│   ├── GoRankResNet                            # ResNet model for rank prediction
-│   └── GoPlayerResNet                          # ResNet model for player identification
+├── tests/                                          # 測試集（官方發佈）
+│   ├── rank_prediction_test_public.csv             # 棋力預測 public
+│   ├── rank_prediction_test_private.csv            # 棋力預測 private
+│   ├── player_identification_test_public.csv       # 玩家辨識題目 public
+│   ├── player_identification_test_private.csv      # 玩家辨識題目 private
+│   ├── player_identification_candidates_public.csv # 候選庫 public
+│   └── player_identification_candidates_private.csv# 候選庫 private
 │
-├── utils.py                                    # Utility functions for SGF parsing
-│   ├── SGFParseRankPrediction                  # Feature extractor for rank prediction
-│   └── SGFParsePlayerIdentification            # Feature extractor for player identification
+├── network.py                                      # 網路架構
+│   ├── GoRankResNet                                # 棋力預測用的 ResNet
+│   └── GoPlayerResNet                              # 玩家辨識用的 ResNet
 │
-├── player-identification-tutorial.ipynb        # Tutorial notebook for player identification
-├── rank-prediction-tutorial.ipynb             # Tutorial notebook for rank prediction
+├── utils.py                                        # SGF 解析工具
+│   ├── SGFParseRankPrediction                      # 棋力預測的特徵抽取器
+│   └── SGFParsePlayerIdentification                # 玩家辨識的特徵抽取器
 │
-└── README.md                                   # This file
+├── rank-prediction.ipynb                           # 棋力預測 tutorial notebook
+├── player-identification.ipynb                     # 玩家辨識 tutorial notebook
+│
+├── README.md                                       # 本文件
+└── README.en.md                                    # English version
 ```
 
-## Dataset Configuration
+特徵目錄、checkpoint 與提交檔會在執行 notebook 的過程中產生。
 
-- **Rank Prediction Train**: 1,000,000 games (10 classes, 100,000 games per class)
+## 資料集說明
 
-Contains labeled games for training models to predict the rank of a player.
+資料與提交格式的正式定義以官方發佈為準。本文件是摘要，兩者有出入時以官方發佈為準。
 
-| Column | Description |
-|--------|-------------|
-| `game_id` | Unique identifier for the game record (e.g., `train_000000`) |
-| `sgf_content` | The full SGF string of the game |
-| `target_color` | The color ("B" or "W") of the player whose rank is being predicted |
-| `rank` | The rank label (target class). Classes: D (12-10k), C (9-7k), B (6-4k), A (3-1k), 1D, 2D, 3D, 4D, 5D, 6D |
+- **訓練集（兩個子題共用）**：100 萬局（10 個等級、每級 10 萬局），分成 10 個 `train_<LEVEL>.csv`，每個等級一檔
 
-- **Rank Prediction Public Test**: 400 questions (20 games per question)
+單一份訓練集同時服務兩個子題。每一列是一局棋：
 
-Contains N-shot like questions where the model must determine the rank of the target player based on a set of their games.
+| 欄位          | 說明                                                                                          |
+| ------------- | --------------------------------------------------------------------------------------------- |
+| `player_id`   | 玩家的雜湊代號（在整份訓練集中一致）                                                          |
+| `game_id`     | 棋譜代號（例如 `g_0000001`），只在**單一等級檔案內**唯一                                       |
+| `rank`        | 玩家的等級標籤。10 級為 D (10~12k), C (7~9k), B (4~6k), A (1~3k), 1D, 2D, 3D, 4D, 5D, 6D      |
+| `color`       | 該玩家在這局的執色（"B" 或 "W"）                                                              |
+| `sgf_content` | 已匿名化的 SGF 棋譜字串                                                                       |
 
-| Column | Description |
-|--------|-------------|
-| `question_id` | Unique identifier for the test question (e.g., `test_000000`) |
-| `num_games` | Number of games provided in the question |
-| `sgf_1` ... `sgf_20` | The SGF content of the games played by the target player |
-| `color_1` ... `color_20` | The color ("B" or "W") played by the target player in the respective game |
+各子題的用法（詳見 notebook）：
 
-- **Player Identification Train**: 200,000 games (1000 players, 200 games per player)
+- 棋力預測：以 `rank` 為標籤，用不到 `player_id`。
+- 玩家辨識：依 `player_id` 分組，同一位玩家的任兩局即構成正例配對。
 
-This file serves as big data for training player identification models.
+- **測試集**：兩個子題各有 **public** 與 **private** 兩份，每份 400 題（每題 5 到 20 局棋譜）
 
-| Column | Description |
-|--------|-------------|
-| `game_id` | Unique identifier for the record (e.g., `train_000000`) |
-| `player_id` | Hashed unique identifier of the player |
-| `sgf_content` | The full SGF string of the game |
-| `color` | The color ("B" or "W") played by the candidate player |
+兩份同時發佈。Public 分數在競賽期間即時公布於排行榜；Private 分數於競賽結束後公布，並作為最終排名依據。
 
+| 欄位                     | 說明                                                              |
+| ------------------------ | ----------------------------------------------------------------- |
+| `question_id`            | 題號，帶 `pub_` 或 `priv_` 前綴（例如 `pub_q_0001`）              |
+| `num_games`              | 該題實際提供的棋譜數                                              |
+| `sgf_1` ... `sgf_20`     | 棋譜內容；只有前 `num_games` 個欄位有值                           |
+| `color_1` ... `color_20` | 對應棋譜的執色（"B" 或 "W"）                                      |
 
-- **Player Identification Candidates**: 400 players (100 games per player), Total 40,000 games
+- **玩家辨識候選庫**：每池 400 位玩家（每人 100 局），每池共 40,000 局
 
-This file serves as the database/gallery of known players. It contains multiple games for each candidate player.
+這是已知玩家的資料庫。Public 與 private 兩池互斥，不可混用。
 
-| Column | Description |
-|--------|-------------|
-| `game_id` | Unique identifier for the record (e.g., `cand_000000`) |
-| `player_id` | Hashed unique identifier of the player |
-| `sgf_content` | The full SGF string of the game |
-| `color` | The color ("B" or "W") played by the candidate player |
-
-- **Player Identification Public Test**: 400 questions (20 games per question)
-
-Contains questions where the model gets a set of games from an unknown player and must identify which `player_id` from the candidates pool they belong to.
-
-| Column | Description |
-|--------|-------------|
-| `question_id` | Unique identifier for the test question |
-| `num_games` | Number of games provided in the query |
-| `sgf_1` ... `sgf_20` | The SGF content of the query games |
-| `color_1` ... `color_20` | The color ("B" or "W") played by the query player in the respective game |
-
+| 欄位          | 說明                                                     |
+| ------------- | -------------------------------------------------------- |
+| `game_id`     | 棋譜代號，帶 `pub_` 或 `priv_` 前綴                      |
+| `player_id`   | 候選玩家的雜湊代號，帶 `pub_p_` 或 `priv_p_` 前綴        |
+| `sgf_content` | 已匿名化的 SGF 棋譜字串                                  |
+| `color`       | 該候選玩家的執色                                         |
 
 ---
 
-## Running Environment
+## 執行環境
 
-### System Requirements
+### 系統需求
 
-The code has been tested on the following environments:
+兩份 tutorial 曾在以下環境完整執行：
 
-- **Operating Systems:**
-  - Windows 11
-  - Ubuntu 24.04 LTS
+- **作業系統：** Ubuntu 22.04.5 LTS
+- **Python：** 3.10.12
+- **深度學習框架：** PyTorch 2.6.0+cu124、CUDA 12.4
 
-- **Python Version:**
-  - Python 3.10
+Notebook 依賴 Linux 的 `fork` 啟動方式，因為多進程的 worker 函式定義在 notebook 內。在 macOS 或 Windows 上執行時，請把 `NPROC` 設為 1，或把那些函式移到獨立的 `.py` 檔。
 
-- **Deep Learning Framework:**
-  - PyTorch 2.8.0
-  - CUDA 12.8 (for GPU acceleration)
+### 硬體需求
 
-### Hardware Requirements
+- **GPU：**
+  - 棋力預測：至少 9 GB VRAM（訓練約 8.6 GB、推論約 0.6 GB）
+  - 玩家辨識：至少 4 GB VRAM（訓練約 2 GB、推論約 4 GB）
+  - VRAM 不足時調小 `BATCH_SIZE`（推論則是 `GPU_BATCH`），只影響速度，不影響正確性。
+- **磁碟空間：**
+  - 棋力預測特徵：約 1.7 GB（存成 gzip 壓縮的 WebDataset 分片）
+  - 玩家辨識特徵：約 15 GB，散在約 100 萬個小檔案 —— 抽取前請同時確認剩餘空間與剩餘 inode 數量。
 
-- **GPU Recommended:** Training deep learning models benefits significantly from GPU acceleration. A GPU with at least 8GB VRAM is recommended.
-- **Disk Space:** 
-  - Rank prediction features: ~180 GB
-  - Player identification features: ~160 GB
-  - Ensure sufficient disk space before running feature extraction
+### 相依套件
 
-### Dependencies
-
-Install the required Python packages:
+安裝所需的 Python 套件：
 
 ```bash
-pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
-pip install pandas numpy tqdm scikit-learn matplotlib seaborn
+pip install torch --index-url https://download.pytorch.org/whl/cu124
+pip install pandas numpy matplotlib
 pip install webdataset sgfmill
 ```
 
 ---
 
-## Getting Started
+## 開始使用
 
-### 1. Rank Prediction Tutorial
+### 1. 棋力預測 Tutorial
 
-Follow the [rank-prediction-tutorial.ipynb](rank-prediction-tutorial.ipynb) notebook to:
-- Extract features from SGF contents using WebDataset
-- Train a ResNet model to classify 10 rank levels
-- Validate model performance with confusion matrix
-- Generate predictions on test data
-- Expected Baseline Score: ~0.51 on the test set using pre-trained model
+跟著 [rank-prediction.ipynb](rank-prediction.ipynb) 完成：
 
-### 2. Player Identification Tutorial
+- 以 WebDataset 從 SGF 棋譜抽取特徵
+- 訓練 ResNet 模型分類 10 個等級
+- 對 public 與 private 兩份測試集產生預測
+- Baseline 分數：Public 測試集 **0.4631**
 
-Follow the [player-identification-tutorial.ipynb](player-identification-tutorial.ipynb) notebook to:
-- Extract move-by-move features from SGF contents
-- Train a ResNet embedding model using Triplet Loss
-- Perform zero-shot inference on test data
-- Generate top-5 predictions for player identification
-- Expected Baseline Score: ~0.30 on the test set using pre-trained model
+### 2. 玩家辨識 Tutorial
 
+跟著 [player-identification.ipynb](player-identification.ipynb) 完成：
 
-### 3. Pre-trained Models
-Pre-trained models for both tasks are available in [link-rank](https://drive.google.com/drive/folders/1cTOdy-CQMocG4hEb3_jz0rZdvikEX1QK?usp=sharing) and [link-player](https://drive.google.com/drive/folders/1K9ZVY6Dbxg3ZzJ3Jz8jvKIjxdng8jdcJ?usp=sharing). You can use these models directly for inference or as a starting point for further training.
+- 從 SGF 棋譜逐手抽取特徵
+- 以 Triplet Loss 訓練 ResNet embedding 模型
+- 用 embedding 距離把題目比對到候選庫
+- 對 public 與 private 兩份測試集產生 Top-5 預測
+- Baseline 分數：Public 測試集 **0.2845**
 
----
-
-## Usage Tips
-
-1. **Feature Extraction:** Both tutorials include a feature extraction step that can take approximately 2 hours. If you've already extracted features, you can skip this section and proceed directly to model training.
-
-2. **GPU Acceleration:** For optimal performance, run the training on a system with GPU support. Adjust `BATCH_SIZE` in the notebooks based on your GPU memory.
-
-3. **Customization:** Feel free to modify:
-   - Model architectures in [network.py](network.py)
-   - Feature extraction logic in [utils.py](utils.py)
-   - Training hyperparameters in the notebooks
-   - Loss functions and optimization strategies
-
-4. **Checkpoints:** Models are automatically saved during training. The best model (based on performance) is saved separately for easy access.
+兩個 baseline 都是照 notebook 原樣跑出來的，沒有使用預訓練權重。
 
 ---
 
-## Competition Submission
+## 使用提示
 
-After training your models and running inference on test data, submission files will be generated:
-- `submission-rank.csv` - Rank prediction results
-- `submission-player.csv` - Player identification results
+1. **特徵抽取：** 兩份 notebook 開頭都有一次性的特徵抽取。特徵產出後，之後重跑可以直接從訓練那節開始。
 
-Submit these files according to the competition guidelines.
+2. **GPU 加速：** 請在具備 GPU 的機器上訓練，並依 GPU 記憶體調整 `BATCH_SIZE`。
+
+3. **自行修改：** 以下都可以改：
+   - [network.py](network.py) 的模型架構
+   - [utils.py](utils.py) 的特徵抽取邏輯
+   - Notebook 內的訓練超參數
+   - 損失函數與最佳化策略
+
+4. **Checkpoint：** 每個 epoch 都會存檔，最佳的那個另外保留 —— 棋力預測依驗證集 accuracy，玩家辨識依訓練 loss。
 
 ---
 
-## Scoring
+## 競賽提交
 
-### Rank Prediction: 
-Each row $i$ in the test set is scored based on the predicted rank:
+每個子題只上傳**一份**提交檔，內容涵蓋兩份測試集。Public 與 private 的題目都要預測，結果串接起來：
+
+```
+rank_prediction_test_public.csv   （400 題）  ─┐
+                                               ├─→  submission_rank.csv   （800 列）
+rank_prediction_test_private.csv  （400 題）  ─┘
+```
+
+玩家辨識同理，產生 800 列的 `submission_player.csv`。**缺任何一份的題目即為缺題，該次提交無效、不予計分。**
+
+| 檔案                    | 欄位                                      |
+| ----------------------- | ----------------------------------------- |
+| `submission_rank.csv`   | `question_id`、`pred_rank`                |
+| `submission_player.csv` | `question_id`、`top_1` ... `top_5`        |
+
+`pub_` / `priv_` 前綴請原樣照抄。玩家辨識的五個人選必須相異，且只能填該題所屬測試集候選庫裡的玩家 —— `pub_` 開頭的題目填了 `priv_p_` 開頭的玩家，會被判為無效提交。
+
+---
+
+## 計分方式
+
+### 棋力預測
+
+測試集中每一列 $i$ 依預測的等級計分：
 
 $$
-score_i = 
+score_i =
 \begin{cases}
-1, & \text{exact rank match} \\ 
-e^{-1}, & \text{within} \pm 1 \text{ rank (excluding exact match)} \\ 
-0, & \text{otherwise}
+1, & \text{完全正確} \\
+e^{-1}, & \text{相鄰一級（不含完全正確）} \\
+0, & \text{其餘}
 \end{cases}
 $$
 
-The final score is the average over all test samples:
+最終分數為所有題目的平均：
 
 $$
 \text{Final Score} = \frac{1}{N} \sum_{i=1}^{N} score_i
 $$
 
-### Player Identification: 
-Each row $i$ in the test set is scored based on whether the correct player ID is within the top-5 predictions:
+### 玩家辨識
+
+測試集中每一列 $i$ 依正解是否落在 Top-5 計分：
 
 $$
 score_i(r) = e^{- (r - 1)}, \quad r \in \{1,2,3,4,5\}
 $$
 
-where $r$ is the placement of the correct player ID in the top-5 list. If the correct ID is not in the top-5, the score is 0.
+其中 $r$ 是正解在 Top-5 名單中的名次。若正解不在 Top-5，該題得 0 分。
 
-The final score is the average over all test samples:
+最終分數為所有題目的平均：
 
 $$
 \text{Final Score} = \frac{1}{N} \sum_{i=1}^{N} score_i(r)
 $$
 
----
-
-## Acknowledgments
-
-This tutorial was prepared by **Serkan Kavak, NDHU AI Lab** as a reference for the AICup 2026 Competition.
-
-For any errors or issues, please open an issue on the project's GitHub repository.
+Public 與 private 分數各自獨立計算，各取自己那 400 題的平均。
 
 ---
 
-## License
+## 致謝
 
-This project is provided for educational and competition purposes. Participants are free to use, modify, and distribute the code.
+本 tutorial 由 **NDHU AI Lab 的 Serkan Kavak** 製作，作為 AICup 2026 競賽的參考教材。
 
-Good luck with your models!
+若發現錯誤或有任何問題，請在本專案的 GitHub repository 開 issue。
+
+---
+
+## 授權
+
+本專案供教學與競賽用途。參賽者可自由使用、修改與散布本程式碼。
+
+祝你的模型一切順利！

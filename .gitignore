@@ -1,13 +1,23 @@
-dataset/*
+# 官方發佈的資料集：訓練集與測試集一律不進版控
+training/
+tests/
+dataset/
+
+# 特徵與權重：體積龐大，由上述資料重新產生
 rank-features/
-rank-trained-models/
 player-features/
+rank-trained-models/
 player-trained-models/
+*.pth
+
+# 執行產出
+*.csv
 *.json
-/*.csv
 *.pkl
+
 __pycache__/
 *.pyc
 
 .ipynb_checkpoints/
 .vscode/
+.DS_Store
