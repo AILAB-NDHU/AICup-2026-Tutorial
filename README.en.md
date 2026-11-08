@@ -100,7 +100,7 @@ Both are released at the same time. Public scores appear on the leaderboard duri
 
 - **Player Identification Candidates**: the original test set has 400 players per pool (100 games per player), 40,000 games per pool; the additional test set has 600 players per pool (10 games per player), 6,000 games per pool
 
-This file is the gallery of known players. The `pub_`, `priv_`, `pub2_` and `priv2_` pools are disjoint and must not be mixed. A player may answer more than one question, and the additional pools also contain players who answer no question.
+This file is the gallery of known players. The `pub_`, `priv_`, `pub2_` and `priv2_` pools are disjoint and must not be mixed. A player may answer more than one question, and a pool may also contain players who answer no question.
 
 | Column        | Description                                                        |
 | ------------- | ------------------------------------------------------------------ |
@@ -164,7 +164,7 @@ Follow the [player-identification.ipynb](player-identification.ipynb) notebook t
 - Train a ResNet embedding model using Triplet Loss
 - Match query games against the candidate pool by embedding distance
 - Generate top-5 predictions for the public and private sets of both the original and the additional test set
-- Baseline score: **0.2845** on the public test set
+- Baseline score: **0.1666** on the public set (800 questions: 400 original + 400 additional)
 
 Both baselines come from running the notebooks as they are, with no pre-trained weights.
 
