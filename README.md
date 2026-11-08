@@ -42,7 +42,11 @@ AICup-2026-Tutorial/
 │   ├── player_identification_test_public.csv       # 玩家辨識題目 public
 │   ├── player_identification_test_private.csv      # 玩家辨識題目 private
 │   ├── player_identification_candidates_public.csv # 候選庫 public
-│   └── player_identification_candidates_private.csv# 候選庫 private
+│   ├── player_identification_candidates_private.csv# 候選庫 private
+│   ├── player_identification_test2_public.csv      # 玩家辨識新增題目 public
+│   ├── player_identification_test2_private.csv     # 玩家辨識新增題目 private
+│   ├── player_identification_candidates2_public.csv  # 新增候選庫 public
+│   └── player_identification_candidates2_private.csv # 新增候選庫 private
 │
 ├── network.py                                      # 網路架構
 │   ├── GoRankResNet                                # 棋力預測用的 ResNet
@@ -83,24 +87,25 @@ AICup-2026-Tutorial/
 - 玩家辨識：依 `player_id` 分組，同一位玩家的任兩局即構成正例配對。
 
 - **測試集**：兩個子題各有 **public** 與 **private** 兩份，每份 400 題（每題 5 到 20 局棋譜）
+- **玩家辨識新增測試集**：另有 public 與 private 各 400 題（每題 1、2、3 或 5 局棋譜），題號前綴為 `pub2_`／`priv2_`，與原測試集的題目合併計分
 
 兩份同時發佈。Public 分數在競賽期間即時公布於排行榜；Private 分數於競賽結束後公布，並作為最終排名依據。
 
 | 欄位                     | 說明                                                              |
 | ------------------------ | ----------------------------------------------------------------- |
-| `question_id`            | 題號，帶 `pub_` 或 `priv_` 前綴（例如 `pub_q_0001`）              |
+| `question_id`            | 題號，帶 `pub_`、`priv_`、`pub2_` 或 `priv2_` 前綴（例如 `pub_q_0001`、`pub2_q_0001`） |
 | `num_games`              | 該題實際提供的棋譜數                                              |
 | `sgf_1` ... `sgf_20`     | 棋譜內容；只有前 `num_games` 個欄位有值                           |
 | `color_1` ... `color_20` | 對應棋譜的執色（"B" 或 "W"）                                      |
 
-- **玩家辨識候選庫**：每池 400 位玩家（每人 100 局），每池共 40,000 局
+- **玩家辨識候選庫**：原測試集每池 400 位玩家（每人 100 局），每池共 40,000 局；新增測試集每池 600 位玩家（每人 10 局），每池共 6,000 局
 
-這是已知玩家的資料庫。Public 與 private 兩池互斥，不可混用。
+這是已知玩家的資料庫。`pub_`、`priv_`、`pub2_`、`priv2_` 四池互斥，不可混用。同一玩家可能對應多題，新增測試集的候選池中也有不對應任何題目的玩家。
 
 | 欄位          | 說明                                                     |
 | ------------- | -------------------------------------------------------- |
-| `game_id`     | 棋譜代號，帶 `pub_` 或 `priv_` 前綴                      |
-| `player_id`   | 候選玩家的雜湊代號，帶 `pub_p_` 或 `priv_p_` 前綴        |
+| `game_id`     | 棋譜代號，帶 `pub_`、`priv_`、`pub2_` 或 `priv2_` 前綴   |
+| `player_id`   | 候選玩家的雜湊代號，帶 `pub_p_`、`priv_p_`、`pub2_p_` 或 `priv2_p_` 前綴 |
 | `sgf_content` | 已匿名化的 SGF 棋譜字串                                  |
 | `color`       | 該候選玩家的執色                                         |
 
@@ -158,7 +163,7 @@ pip install webdataset sgfmill
 - 從 SGF 棋譜逐手抽取特徵
 - 以 Triplet Loss 訓練 ResNet embedding 模型
 - 用 embedding 距離把題目比對到候選庫
-- 對 public 與 private 兩份測試集產生 Top-5 預測
+- 對原測試集與新增測試集的 public、private 四份題目產生 Top-5 預測
 - Baseline 分數：Public 測試集 **0.2845**
 
 兩個 baseline 都是照 notebook 原樣跑出來的，沒有使用預訓練權重。
@@ -191,14 +196,14 @@ rank_prediction_test_public.csv   （400 題）  ─┐
 rank_prediction_test_private.csv  （400 題）  ─┘
 ```
 
-玩家辨識同理，產生 800 列的 `submission_player.csv`。**缺任何一份的題目即為缺題，該次提交無效、不予計分。**
+玩家辨識要把原測試集與新增測試集的 public、private 四份題目都預測，產生 1,600 列的 `submission_player.csv`。**缺任何一份的題目即為缺題，該次提交無效、不予計分。**
 
 | 檔案                    | 欄位                                      |
 | ----------------------- | ----------------------------------------- |
 | `submission_rank.csv`   | `question_id`、`pred_rank`                |
 | `submission_player.csv` | `question_id`、`top_1` ... `top_5`        |
 
-`pub_` / `priv_` 前綴請原樣照抄。玩家辨識的五個人選必須相異，且只能填該題所屬測試集候選庫裡的玩家 —— `pub_` 開頭的題目填了 `priv_p_` 開頭的玩家，會被判為無效提交。
+前綴請原樣照抄。玩家辨識的五個人選必須相異，且前綴必須與題號相同 —— 例如 `pub2_` 開頭的題目填了 `pub_p_` 開頭的玩家，會被判為無效提交；填了候選庫以外的編號，該格不得分。
 
 ---
 
@@ -239,7 +244,7 @@ $$
 \text{Final Score} = \frac{1}{N} \sum_{i=1}^{N} score_i(r)
 $$
 
-Public 與 private 分數各自獨立計算，各取自己那 400 題的平均。
+Public 與 private 分數各自獨立計算。玩家辨識的 Public 分數是原測試集 public 400 題與新增測試集 public 400 題、共 800 題的平均；Private 同理。
 
 ---
 
