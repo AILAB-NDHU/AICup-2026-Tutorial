@@ -89,7 +89,7 @@ Usage per task (see the notebooks):
 - **Test Sets**: each task has a **public** and a **private** set of 400 questions (5 to 20 games per question)
 - **Additional Player Identification Test Set**: another 400 public and 400 private questions (1, 2, 3 or 5 games per question), prefixed `pub2_` / `priv2_`, scored together with the original questions
 
-Both are released at the same time. Public scores appear on the leaderboard during the competition; private scores are published after it ends and decide the final ranking.
+Both are released at the same time. Public scores appear on the leaderboard during the competition; private scores are published after it ends and are one of the bases for the final ranking.
 
 | Column                   | Description                                                                    |
 | ------------------------ | ------------------------------------------------------------------------------ |
@@ -98,7 +98,7 @@ Both are released at the same time. Public scores appear on the leaderboard duri
 | `sgf_1` ... `sgf_20`     | The SGF content of the games; only the first `num_games` columns are filled     |
 | `color_1` ... `color_20` | The color ("B" or "W") played in the respective game                           |
 
-- **Player Identification Candidates**: the original test set has 400 players per pool (100 games per player), 40,000 games per pool; the additional test set has 600 players per pool (10 games per player), 6,000 games per pool
+- **Player Identification Candidates**: the original test set has 400 players per pool (100 games per player), 40,000 games per pool; the additional test set has 10 games per player
 
 This file is the gallery of known players. The `pub_`, `priv_`, `pub2_` and `priv2_` pools are disjoint and must not be mixed. A player may answer more than one question, and a pool may also contain players who answer no question.
 
