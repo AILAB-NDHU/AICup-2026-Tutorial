@@ -188,7 +188,9 @@ pip install webdataset sgfmill
 
 ## 競賽提交
 
-每個子題只上傳**一份**提交檔，內容涵蓋兩份測試集。Public 與 private 的題目都要預測，結果串接起來：
+每個子題只上傳**一份**提交檔，該子題的所有題目都要預測，結果串接起來。**缺任何一份的題目即為缺題，該次提交無效、不予計分。**
+
+棋力預測：public 與 private 兩份題目。
 
 ```
 rank_prediction_test_public.csv   （400 題）  ─┐
@@ -196,7 +198,14 @@ rank_prediction_test_public.csv   （400 題）  ─┐
 rank_prediction_test_private.csv  （400 題）  ─┘
 ```
 
-玩家辨識要把原測試集與新增測試集的 public、private 四份題目都預測，產生 1,600 列的 `submission_player.csv`。**缺任何一份的題目即為缺題，該次提交無效、不予計分。**
+玩家辨識：原測試集與新增測試集的 public、private 四份題目。
+
+```
+player_identification_test_public.csv     （400 題）  ─┐
+player_identification_test2_public.csv    （400 題）  ─┤
+player_identification_test_private.csv    （400 題）  ─┼─→  submission_player.csv   （1,600 列）
+player_identification_test2_private.csv   （400 題）  ─┘
+```
 
 | 檔案                    | 欄位                                      |
 | ----------------------- | ----------------------------------------- |

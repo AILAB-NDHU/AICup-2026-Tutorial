@@ -188,7 +188,9 @@ Both baselines come from running the notebooks as they are, with no pre-trained 
 
 ## Competition Submission
 
-Each task takes **one** submission file that covers both test sets. Predict the public and the private questions, then concatenate the results:
+Each task takes **one** submission file that covers all of its questions; predict them all, then concatenate the results. **A submission missing any of these questions is invalid and will not be scored.**
+
+Rank prediction: the public and the private set.
 
 ```
 rank_prediction_test_public.csv   (400 questions)  ─┐
@@ -196,7 +198,14 @@ rank_prediction_test_public.csv   (400 questions)  ─┐
 rank_prediction_test_private.csv  (400 questions)  ─┘
 ```
 
-For player identification, predict the public and private sets of both the original and the additional test set, producing `submission_player.csv` with 1,600 rows. **A submission missing any of these questions is invalid and will not be scored.**
+Player identification: the public and private sets of both the original and the additional test set.
+
+```
+player_identification_test_public.csv     (400 questions)  ─┐
+player_identification_test2_public.csv    (400 questions)  ─┤
+player_identification_test_private.csv    (400 questions)  ─┼─→  submission_player.csv   (1,600 rows)
+player_identification_test2_private.csv   (400 questions)  ─┘
+```
 
 | File                    | Columns                                   |
 | ----------------------- | ----------------------------------------- |
