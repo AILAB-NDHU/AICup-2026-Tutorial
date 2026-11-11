@@ -42,7 +42,11 @@ AICup-2026-Tutorial/
 │   ├── player_identification_test_public.csv       # Player identification queries, public
 │   ├── player_identification_test_private.csv      # Player identification queries, private
 │   ├── player_identification_candidates_public.csv # Candidate pool, public
-│   └── player_identification_candidates_private.csv# Candidate pool, private
+│   ├── player_identification_candidates_private.csv# Candidate pool, private
+│   ├── player_identification_test2_public.csv      # Additional player identification queries, public
+│   ├── player_identification_test2_private.csv     # Additional player identification queries, private
+│   ├── player_identification_candidates2_public.csv  # Additional candidate pool, public
+│   └── player_identification_candidates2_private.csv # Additional candidate pool, private
 │
 ├── network.py                                      # Neural network architectures
 │   ├── GoRankResNet                                # ResNet model for rank prediction
@@ -83,24 +87,25 @@ Usage per task (see the notebooks):
 - Player identification: group rows by `player_id`; every game of a player forms a positive pair.
 
 - **Test Sets**: each task has a **public** and a **private** set of 400 questions (5 to 20 games per question)
+- **Additional Player Identification Test Set**: another 400 public and 400 private questions (1, 2, 3 or 5 games per question), prefixed `pub2_` / `priv2_`, scored together with the original questions
 
-Both are released at the same time. Public scores appear on the leaderboard during the competition; private scores are published after it ends and decide the final ranking.
+Both are released at the same time. Public scores appear on the leaderboard during the competition; private scores are published after it ends and are one of the bases for the final ranking.
 
 | Column                   | Description                                                                    |
 | ------------------------ | ------------------------------------------------------------------------------ |
-| `question_id`            | Identifier of the question, prefixed `pub_` or `priv_` (e.g. `pub_q_0001`)     |
+| `question_id`            | Identifier of the question, prefixed `pub_`, `priv_`, `pub2_` or `priv2_` (e.g. `pub_q_0001`, `pub2_q_0001`) |
 | `num_games`              | Number of games provided in the question                                       |
 | `sgf_1` ... `sgf_20`     | The SGF content of the games; only the first `num_games` columns are filled     |
 | `color_1` ... `color_20` | The color ("B" or "W") played in the respective game                           |
 
-- **Player Identification Candidates**: 400 players per pool (100 games per player), 40,000 games per pool
+- **Player Identification Candidates**: the original test set has 400 players per pool (100 games per player), 40,000 games per pool; the additional test set has 10 games per player
 
-This file is the gallery of known players. Public and private pools are disjoint and must not be mixed.
+This file is the gallery of known players. The `pub_`, `priv_`, `pub2_` and `priv2_` pools are disjoint and must not be mixed. A player may answer more than one question, and a pool may also contain players who answer no question.
 
 | Column        | Description                                                        |
 | ------------- | ------------------------------------------------------------------ |
-| `game_id`     | Identifier of the record, prefixed `pub_` or `priv_`               |
-| `player_id`   | Hashed identifier of the candidate, prefixed `pub_p_` or `priv_p_` |
+| `game_id`     | Identifier of the record, prefixed `pub_`, `priv_`, `pub2_` or `priv2_` |
+| `player_id`   | Hashed identifier of the candidate, prefixed `pub_p_`, `priv_p_`, `pub2_p_` or `priv2_p_` |
 | `sgf_content` | The anonymised SGF string of the game                              |
 | `color`       | The color played by the candidate player                           |
 
@@ -158,8 +163,8 @@ Follow the [player-identification.ipynb](player-identification.ipynb) notebook t
 - Extract move-by-move features from SGF contents
 - Train a ResNet embedding model using Triplet Loss
 - Match query games against the candidate pool by embedding distance
-- Generate top-5 predictions for both the public and the private test set
-- Baseline score: **0.2845** on the public test set
+- Generate top-5 predictions for the public and private sets of both the original and the additional test set
+- Baseline score: **0.1666** on the public set (800 questions: 400 original + 400 additional)
 
 Both baselines come from running the notebooks as they are, with no pre-trained weights.
 
@@ -191,14 +196,14 @@ rank_prediction_test_public.csv   (400 questions)  ─┐
 rank_prediction_test_private.csv  (400 questions)  ─┘
 ```
 
-Player identification works the same way, producing `submission_player.csv` with 800 rows. **A submission missing either half is invalid and will not be scored.**
+For player identification, predict the public and private sets of both the original and the additional test set, producing `submission_player.csv` with 1,600 rows. **A submission missing any of these questions is invalid and will not be scored.**
 
 | File                    | Columns                                   |
 | ----------------------- | ----------------------------------------- |
 | `submission_rank.csv`   | `question_id`, `pred_rank`                |
 | `submission_player.csv` | `question_id`, `top_1` ... `top_5`        |
 
-Copy the `pub_` / `priv_` prefixes verbatim. For player identification, the five predictions must be distinct and must come from the candidate pool of the same test set as the question — answering a `pub_` question with a `priv_p_` player invalidates the submission.
+Copy the prefixes verbatim. For player identification, the five predictions must be distinct and must carry the same prefix as the question — answering a `pub2_` question with a `pub_p_` player invalidates the submission; an id outside the candidate pool just scores nothing for that slot.
 
 ---
 
@@ -239,7 +244,7 @@ $$
 \text{Final Score} = \frac{1}{N} \sum_{i=1}^{N} score_i(r)
 $$
 
-Public and private scores are computed independently, each averaged over its own 400 questions.
+Public and private scores are computed independently. For player identification, the public score averages the 400 original public questions and the 400 additional public questions, 800 in total; the private score works the same way.
 
 ---
 
